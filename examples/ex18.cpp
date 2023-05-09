@@ -229,7 +229,6 @@ int main(int argc, char *argv[])
          sout << "solution\n" << mesh << mom;
          sout << "view 0 0\n";  // view from top
          sout << "keys jlm\n";  // turn off perspective and light
-         sout << "pause\n";
          sout << flush;
          out << "GLVis visualization paused."
              << " Press space (in the GLVis window) to resume it.\n";
@@ -318,7 +317,7 @@ int main(int argc, char *argv[])
    // 10. Compute the L2 solution error summed for all components.
    //   if (t_final == 2.0) {
    const double error = sol.ComputeLpError(2, u0);
-   out << "Solution error: " << error << endl;
+   out << "Solution error: " << log2(error) << endl;
 
    // Free the used memory.
    delete ode_solver;

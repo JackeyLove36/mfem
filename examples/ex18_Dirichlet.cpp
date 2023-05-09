@@ -150,6 +150,7 @@ int main(int argc, char *argv[]) {
       return 3;
   }
 
+
   // 4. Define the discontinuous DG finite element space of the given
   //    polynomial order on the refined mesh.
   DG_FECollection fec(order, dim);
@@ -206,6 +207,7 @@ int main(int argc, char *argv[]) {
   euler.addBdrFaceIntegrator(
       new EulerDirichletBC(numericalFlux, dim, specific_heat_ratio, u0, 3),
       ess_bdr);
+   euler.addTimeDependentFunction(&u0);
 
   // Visualize the density
   socketstream sout;
@@ -302,10 +304,23 @@ int main(int argc, char *argv[]) {
     }
   }
 
+
+
+
   // 10. Compute the L2 solution error summed for all components.
   //   if (t_final == 2.0) {
+  
   const double error = sol.ComputeLpError(2, u0);
-  out << "Solution error: " << error << endl;
+  out << "L2 Solution error: " << log2(error)<< endl;
+  
+
+  
+  // sol.ComputeL2Error
+  Vector errors;
+    sol.ComputeElementL2Errors(u0, errors);
+  double total_error = errors.Norml2();
+
+
 
   // Free the used memory.
   delete ode_solver;
@@ -364,7 +379,7 @@ VectorFunctionCoefficient EulerInitialCondition(
             const double pres_inf = (den_inf / specific_heat_ratio) *
                                     (vel_inf / Minf) * (vel_inf / Minf);
             const double temp_inf = pres_inf / (den_inf * gas_constant);
-
+            
             double r2rad = 0.0;
             r2rad += (x(0) - xc) * (x(0) - xc);
             r2rad += (x(1) - yc) * (x(1) - yc);
