@@ -373,6 +373,7 @@ class DGHyperbolicConservationLaws : public TimeDependentOperator {
   mutable double max_char_speed;
   // auxiliary variable used in Mult
   mutable Vector z;
+  Array<VectorFunctionCoefficient*> time_dependent_functions;
 
   // Compute element-wise inverse mass matrix
   void ComputeInvMass();
@@ -414,6 +415,18 @@ class DGHyperbolicConservationLaws : public TimeDependentOperator {
                             Array<int> &bdr_marker) {
     nonlinearForm->AddBdrFaceIntegrator(nlfi, bdr_marker);
   }
+
+  void addTimeDependentFunction(VectorFunctionCoefficient *fun)
+  {
+    time_dependent_functions.Append(fun);
+  }
+  void SetTime(double t_){
+    TimeDependentOperator::SetTime(t_);
+    for (auto *fun : time_dependent_functions)
+    {
+      fun->SetTime(t_);
+    }
+  }
 };
 
    //////////////////////////////////////////////////////////////////
@@ -430,7 +443,8 @@ DGHyperbolicConservationLaws::DGHyperbolicConservationLaws(
       vfes(vfes_),
       formIntegrator(formIntegrator_),
       Me_inv(0),
-      z(vfes_->GetNDofs() * num_equations_) {
+      z(vfes_->GetNDofs() * num_equations_),
+      time_dependent_functions(0) {
   // Standard local assembly and inversion for energy mass matrices.
   ComputeInvMass();
 #ifndef MFEM_USE_MPI
