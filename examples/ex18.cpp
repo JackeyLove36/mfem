@@ -62,14 +62,14 @@ VectorFunctionCoefficient EulerInitialCondition(const int problem,
 int main(int argc, char *argv[])
 {
    // 1. Parse command-line options.
-   int problem = 1;
+   int problem = 6;
    const double specific_heat_ratio = 1.4;
    const double gas_constant = 1.0;
 
    const char *mesh_file = "";
    int IntOrderOffset = 3;
    int ref_levels = 2;
-   int order = 3;
+   int order = 2;
    int ode_solver_type = 4;
    double t_final = 2.0;
    double dt = -0.01;
@@ -344,6 +344,9 @@ void EulerMesh(const int problem, const char **mesh_file)
       case 5:
          *mesh_file = "../data/periodic-square-4x4.mesh";
          break;
+      case 6:
+         *mesh_file = "../data/periodic-segment.mesh";
+         break;
       default:
          throw invalid_argument("Default mesh is undefined");
    }
@@ -508,6 +511,23 @@ VectorFunctionCoefficient EulerInitialCondition(const int problem,
             y(2) = density * velocity_y;
             y(3) = energy;
          });
+      case 6:
+      return VectorFunctionCoefficient(4, [](const Vector &x, double t,
+                                             Vector &y) {
+        MFEM_ASSERT(x.Size() == 2, "");  // 2D Euler system
+        const double density = 1 + 0.2 * sin(M_PI * (x(0) + x(1) - t));
+        const double velocity_x = 0.7;
+        const double velocity_y = 0.3;
+        const double pressure = 1.0;
+        const double energy =
+            pressure / (1.4 - 1.0) +
+            0.5 * density * (velocity_x * velocity_x + velocity_y * velocity_y);
+
+        y(0) = density;
+        y(1) = density * velocity_x;
+        y(2) = density * velocity_y;
+        y(3) = energy;
+      });
       default:
          throw invalid_argument("Problem Undefined");
    }
